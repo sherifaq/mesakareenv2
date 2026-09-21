@@ -7,7 +7,7 @@
     <!-- خط تجوال لدعم الهوية العربية -->
     <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
     <!-- ربط ملف التنسيقات -->
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body>
     <div class="app-container">
@@ -36,17 +36,25 @@
             <!-- 2. شاشة الأطعمة والبحث -->
             <section id="tab-foods" class="tab-content">
                 <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="ابحث عن طعام...">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchInput" placeholder="اكتب اسم الطعام..." />
+                    </div>
+                    
+                    <!-- القائمة المنسدلة للتصنيفات (Dropdown) -->
+                    <div class="category-dropdown-container">
+                        <label for="categorySelect" class="category-label">البحث في الأصناف:</label>
+                        <select id="categorySelect" class="category-select">
+                            <option value="all">الكل</option>
+                            <!-- سيتم إضافة باقي التصنيفات هنا برمجياً من ملف الجافاسكريبت -->
+                        </select>
+                    </div>
                 </div>
-                <div class="categories-chips" id="categoriesContainer">
-                    <!-- سيتم إضافة التصنيفات هنا بواسطة JS -->
-                </div>
+
                 <div id="foodList" class="food-list">
                     <!-- سيتم إضافة قائمة الأطعمة هنا بواسطة JS -->
                 </div>
             </section>
-
-            <!-- ... (باقي الكود قبل شاشة الحاسبة) ... -->
 
             <!-- 3. شاشة الحاسبة -->
             <section id="tab-calculator" class="tab-content">
@@ -64,8 +72,13 @@
                             <span>الحمل الجلايسيمي التقريبي (GL):</span>
                             <span class="total-value" id="totalGL">0</span>
                         </div>
+                        <!-- صندوق النصيحة والتنبيه الديناميكي -->
+                        <div id="glAdviceBox" class="gl-advice-box" style="display: none;">
+                            <span id="glAdviceIcon" class="gl-advice-icon">💡</span>
+                            <div id="glAdviceText" class="gl-advice-text"></div>
+                        </div>
                     </div>
-                    <!-- الزر الجديد: حفظ الوجبة -->
+                    <!-- زر حفظ الوجبة -->
                     <button id="saveMealBtn" class="save-meal-btn" onclick="promptSaveMeal()" style="display: none;">
                         💾 حفظ الوجبة في السجل
                     </button>
@@ -82,8 +95,6 @@
                     </div>
                 </div>
             </section>
-
-            <!-- ... (باقي الكود بعد شاشة السجل) ... -->
 
         </main>
 
@@ -105,15 +116,9 @@
                 <span class="nav-icon">📅</span>
                 <span class="nav-label">السجل</span>
             </button>
-            <!-- <button class="nav-item" data-target="tab-settings">
-                <span class="nav-icon">⚙️</span>
-                <span class="nav-label">الإعدادات</span>
-            </button> -->
         </nav>
-    </div>
-    <!-- ... شريط التنقل السفلي (Bottom Navigation) ... -->
-        
-        <!-- النافذة المنبثقة المخصصة لإدخال الوزن (Modal) -->
+
+        <!-- النافذة المنبثقة لإدخال الوزن (Modal) -->
         <div id="weightModal" class="modal-overlay">
             <div class="modal-content">
                 <h3 id="modalFoodName" class="modal-title">اسم الطعام</h3>
@@ -131,7 +136,7 @@
             </div>
         </div>
 
-        <!-- 1. نافذة إدخال النصوص (لتسمية الوجبة وتعديل عنوانها) -->
+        <!-- نافذة إدخال النصوص -->
         <div id="textInputModal" class="modal-overlay">
             <div class="modal-content">
                 <h3 id="textModalTitle" class="modal-title">تسمية الوجبة</h3>
@@ -148,7 +153,7 @@
             </div>
         </div>
 
-        <!-- 2. نافذة التأكيد (للحذف أو الاسترجاع للحاسبة) -->
+        <!-- نافذة التأكيد -->
         <div id="confirmModal" class="modal-overlay">
             <div class="modal-content">
                 <h3 id="confirmModalTitle" class="modal-title">تأكيد الإجراء</h3>
@@ -161,11 +166,9 @@
             </div>
         </div>
 
-    </div> <!-- نهاية app-container -->
+    </div>
 
-    <!-- ربط ملفات الجافاسكريبت ... -->
-
-    <!-- ربط ملفات الجافاسكريبت (ملف البيانات أولاً ثم ملف العمليات) -->
+    <!-- ملفات الجافاسكريبت -->
     <script src="data.js"></script>
     <script src="script.js"></script>
 </body>

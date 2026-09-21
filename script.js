@@ -6,41 +6,41 @@ let dailyLogs = [];
 let currentSelectedFood = null; 
 let textModalCallback = null;
 let confirmModalCallback = null;
+let currentCategory = 'all'; // التصنيف الافتراضي للفلترة
 
 // ==========================================
 // نظام الحفظ في ذاكرة المتصفح (LocalStorage)
 // ==========================================
-// دالة لحفظ السجل في المتصفح
 function saveLogsToStorage() {
-    // نحول البيانات إلى نص ونحفظها باسم 'maskareen_logs'
     localStorage.setItem('maskareen_logs', JSON.stringify(dailyLogs));
 }
 
-// دالة لاسترجاع السجل من المتصفح عند فتح التطبيق
 function loadLogsFromStorage() {
     const storedLogs = localStorage.getItem('maskareen_logs');
     if (storedLogs) {
-        dailyLogs = JSON.parse(storedLogs); // إعادة تحويل النص إلى بيانات
+        dailyLogs = JSON.parse(storedLogs);
     }
 }
-
 
 // ==========================================
 // التهيئة عند تحميل الصفحة
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
-    renderFoodList(foodDatabase);
-    setupSearch();
     
-    // استرجاع السجلات المحفوظة سابقاً من المتصفح
+    // تشغيل القائمة المنسدلة للبحث والتصنيفات
+    initSearchAndTabs(); 
+    
+    // عرض الأطعمة الافتراضي
+    renderFoodList(foodDatabase);
+    
+    // استرجع السجلات وعرضها
     loadLogsFromStorage();
-    // عرضها في واجهة السجل فوراً
     renderLogsUI();
 });
 
 // ==========================================
-// 1. نظام التنقل والبحث وعرض الأطعمة
+// 1. نظام التنقل والبحث والقائمة المنسدلة
 // ==========================================
 function initNavigation() {
     const navItems = document.querySelectorAll('.nav-item');
@@ -58,12 +58,78 @@ function initNavigation() {
     });
 }
 
+function initSearchAndTabs() {
+    buildCategoryDropdown();
+    setupAdvancedSearch();
+}
+
+// بناء القائمة المنسدلة للتصنيفات من قاعدة البيانات
+function buildCategoryDropdown() {
+    const selectElement = document.getElementById('categorySelect');
+    if (!selectElement) return;
+
+    // إعادة ضبط القائمة بوضع الخيار الافتراضي "الكل"
+    selectElement.innerHTML = '<option value="all">الكل</option>';
+
+    // استخراج التصنيفات الفريدة من الداتا (تجاهل الفراغات والتصنيفات غير المرغوبة)
+    const categories = [...new Set(foodDatabase.map(food => food.category))].filter(Boolean);
+    
+    categories.forEach(category => {
+        if(category === "أخرى" || category.toLowerCase() === "nan") return;
+        
+        const option = document.createElement('option');
+        option.value = category;
+        option.textContent = category;
+        selectElement.appendChild(option);
+    });
+
+    // الاستماع لحدث تغيير الاختيار من القائمة المنسدلة
+    selectElement.addEventListener('change', (e) => {
+        currentCategory = e.target.value;
+        filterFoods();
+    });
+}
+
+function setupAdvancedSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if(searchInput) {
+        searchInput.addEventListener('input', () => {
+            filterFoods();
+        });
+    }
+}
+
+// دالة الفلترة (تبحث في الاسم، التصنيف، والأسماء البديلة)
+function filterFoods() {
+    const searchInput = document.getElementById('searchInput');
+    const searchTerm = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    
+    const filtered = foodDatabase.filter(food => {
+        // فلترة التصنيف
+        const matchCategory = (currentCategory === 'all') || (food.category === currentCategory);
+        
+        // فلترة البحث النصي (في الاسم، الـ aliases، والـ subcategory)
+        const nameMatch = food.name.toLowerCase().includes(searchTerm);
+        const aliasesStr = food.aliases ? String(food.aliases).toLowerCase() : "";
+        const aliasesMatch = aliasesStr.includes(searchTerm);
+        const subCatMatch = food.subcategory ? String(food.subcategory).toLowerCase().includes(searchTerm) : false;
+
+        const matchSearch = searchTerm === '' || nameMatch || aliasesMatch || subCatMatch;
+        
+        return matchCategory && matchSearch;
+    });
+    
+    renderFoodList(filtered);
+}
+
+// عرض قائمة الأطعمة
 function renderFoodList(foods) {
     const listContainer = document.getElementById('foodList');
+    if(!listContainer) return;
     listContainer.innerHTML = ''; 
 
     if(foods.length === 0) {
-        listContainer.innerHTML = '<p class="empty-state">لم يتم العثور على أطعمة.</p>';
+        listContainer.innerHTML = '<p class="empty-state">لم يتم العثور على أطعمة تطابق بحثك.</p>';
         return;
     }
 
@@ -71,30 +137,27 @@ function renderFoodList(foods) {
         const itemDiv = document.createElement('div');
         itemDiv.className = 'food-item';
         
+        // تأمين القيم في حالة عدم وجودها
+        const p = (food.protein !== undefined) ? food.protein : 0;
+        const f = (food.fat !== undefined) ? food.fat : 0;
+        const subCat = (food.subcategory && food.subcategory.toLowerCase() !== 'nan') ? `<span style="font-size: 0.7rem; background:#e5e7eb; padding:2px 6px; border-radius:10px; margin-right:5px;">${food.subcategory}</span>` : '';
+
         itemDiv.innerHTML = `
             <div class="food-info">
                 <h3>${food.name}</h3>
-                <p>كربوهيدرات: ${food.carbsPer100g} جم لكل 100 جم | مؤشر السكر: ${food.gi}</p>
-                <p style="font-size: 0.75rem; margin-top: 4px;">الحصة المرجعية: ${food.servingSizeDesc}</p>
+                <p>
+                    <span style="color:#177a67; font-weight:bold;">كارب: ${food.carbsPer100g}جم</span> | 
+                    <span style="color:#b91c1c;">بروتين: ${p}جم</span> | 
+                    <span style="color:#b45309;">دهون: ${f}جم</span>
+                </p>
+                <p style="font-size: 0.75rem; margin-top: 4px; color:#6b7280;">
+                    مؤشر السكر (GI): <b>${food.gi}</b> | الحصة المرجعية: ${food.servingSizeDesc}
+                    ${subCat}
+                </p>
             </div>
             <button class="add-btn" onclick="askForWeightAndAdd(${food.id})">إضافة +</button>
         `;
         listContainer.appendChild(itemDiv);
-    });
-}
-
-function setupSearch() {
-    const searchInput = document.getElementById('searchInput');
-    searchInput.addEventListener('input', (e) => {
-        const searchTerm = e.target.value.trim();
-        if (searchTerm === '') {
-            renderFoodList(foodDatabase);
-        } else {
-            const filtered = foodDatabase.filter(food => 
-                food.name.includes(searchTerm) || food.category.includes(searchTerm)
-            );
-            renderFoodList(filtered);
-        }
     });
 }
 
@@ -150,11 +213,9 @@ document.getElementById('modalWeightInput').addEventListener('keypress', functio
     if (e.key === 'Enter') confirmWeightAndAdd();
 });
 
-
 // ==========================================
 // 3. مدير النوافذ المنبثقة العامة (Custom Modals)
 // ==========================================
-
 function openTextInputModal(title, desc, initialValue, callback) {
     document.getElementById('textModalTitle').innerText = title;
     document.getElementById('textModalDesc').innerText = desc;
@@ -225,9 +286,8 @@ document.getElementById('confirmModal').addEventListener('click', function(e) {
     if (e.target === this) closeConfirmModal();
 });
 
-
 // ==========================================
-// 4. الحاسبة 
+// 4. الحاسبة (مع نصيحة الحمل الجلايسيمي)
 // ==========================================
 function updateCalculatorUI() {
     const calcContainer = document.getElementById('calculatorItems');
@@ -270,6 +330,30 @@ function updateCalculatorUI() {
     } else {
         saveBtn.style.display = 'none';
     }
+
+    const adviceBox = document.getElementById('glAdviceBox');
+    const adviceText = document.getElementById('glAdviceText');
+    const adviceIcon = document.getElementById('glAdviceIcon');
+
+    if (currentCalculatorItems.length > 0 && adviceBox) {
+        adviceBox.style.display = 'flex';
+        
+        if (totalGL <= 10) {
+            adviceBox.className = 'gl-advice-box low';
+            adviceIcon.innerText = '🟢';
+            adviceText.innerHTML = '<strong>حمل جلايسيمي منخفض (GL ≤ 10):</strong> تأثير الوجبة هادئ وبطيء على مستويات سكر الدم.';
+        } else if (totalGL <= 19) {
+            adviceBox.className = 'gl-advice-box medium';
+            adviceIcon.innerText = '🟡';
+            adviceText.innerHTML = '<strong>حمل جلايسيمي متوسط (GL 11 - 19):</strong> تأثير متوسط على سكر الدم. يُفضل المراقبة المعتادة بعد الوجبة.';
+        } else {
+            adviceBox.className = 'gl-advice-box high';
+            adviceIcon.innerText = '⚠️';
+            adviceText.innerHTML = '<strong>حمل جلايسيمي مرتفع (GL ≥ 20):</strong> قد تؤدي هذه الوجبة إلى ارتفاع سريع أو متأخر في سكر الدم. يُنصح بمراقبة السكر بعد الوجبة (من 2 إلى 4 ساعات).';
+        }
+    } else if (adviceBox) {
+        adviceBox.style.display = 'none';
+    }
 }
 
 function removeFromCalculator(index) {
@@ -277,9 +361,8 @@ function removeFromCalculator(index) {
     updateCalculatorUI();
 }
 
-
 // ==========================================
-// 5. سجل الوجبات (تاريخ، حفظ، عرض، تعديل، وحذف)
+// 5. سجل الوجبات
 // ==========================================
 function getFormattedArabicDate() {
     const date = new Date();
@@ -308,8 +391,6 @@ function saveMealToLogs(mealName) {
     };
 
     dailyLogs.push(newMealRecord);
-    
-    // --- تحديث: حفظ السجل في المتصفح ---
     saveLogsToStorage();
 
     currentCalculatorItems = [];
@@ -321,15 +402,9 @@ function saveMealToLogs(mealName) {
 
 function promptSaveMeal() {
     if (currentCalculatorItems.length === 0) return;
-
-    openTextInputModal(
-        "حفظ الوجبة في السجل 💾",
-        "أدخل اسماً للوجبة (مثال: الفطور، الغداء، سناكس):",
-        "الفطور",
-        function(mealName) {
-            saveMealToLogs(mealName);
-        }
-    );
+    openTextInputModal("حفظ الوجبة في السجل 💾", "أدخل اسماً للوجبة (مثال: الفطور، الغداء، سناكس):", "الفطور", function(mealName) {
+        saveMealToLogs(mealName);
+    });
 }
 
 function renderLogsUI() {
@@ -387,7 +462,6 @@ function renderLogsUI() {
                 </button>
             </div>
         `;
-        
         logsContainer.appendChild(mealCard);
     });
 }
@@ -395,58 +469,33 @@ function renderLogsUI() {
 function editMealTitle(mealId) {
     const meal = dailyLogs.find(m => m.id === mealId);
     if (!meal) return;
-
-    openTextInputModal(
-        "تعديل اسم الوجبة ✏️",
-        "أدخل الاسم الجديد للوجبة:",
-        meal.name,
-        function(newName) {
-            meal.name = newName;
-            // --- تحديث: حفظ التعديل في المتصفح ---
-            saveLogsToStorage();
-            renderLogsUI();
-        }
-    );
+    openTextInputModal("تعديل اسم الوجبة ✏️", "أدخل الاسم الجديد للوجبة:", meal.name, function(newName) {
+        meal.name = newName;
+        saveLogsToStorage();
+        renderLogsUI();
+    });
 }
 
 function deleteMealFromLogs(mealId) {
     const meal = dailyLogs.find(m => m.id === mealId);
     if (!meal) return;
-
-    openConfirmModal(
-        "حذف الوجبة 🗑️",
-        `هل أنت متأكد من حذف وجبة "${meal.name}" من السجل؟`,
-        true,
-        function() {
-            dailyLogs = dailyLogs.filter(m => m.id !== mealId);
-            // --- تحديث: حفظ الحذف في المتصفح ---
-            saveLogsToStorage();
-            renderLogsUI();
-        }
-    );
+    openConfirmModal("حذف الوجبة 🗑️", `هل أنت متأكد من حذف وجبة "${meal.name}" من السجل؟`, true, function() {
+        dailyLogs = dailyLogs.filter(m => m.id !== mealId);
+        saveLogsToStorage();
+        renderLogsUI();
+    });
 }
 
 function reloadMealToCalculator(mealId) {
     const mealIndex = dailyLogs.findIndex(m => m.id === mealId);
     if (mealIndex === -1) return;
-
     const meal = dailyLogs[mealIndex];
-
-    openConfirmModal(
-        "تعديل مكونات الوجبة 🔄",
-        `سيتم نقل عناصر وجبة "${meal.name}" للحاسبة لتعديل الأطعمة والأوزان، وسُتحذف من السجل لحفظها مجدداً. هل ترغب بالاستمرار؟`,
-        false,
-        function() {
-            currentCalculatorItems = [...meal.items];
-            dailyLogs.splice(mealIndex, 1);
-            
-            // --- تحديث: حفظ التغيير في المتصفح ---
-            saveLogsToStorage();
-            
-            updateCalculatorUI();
-            renderLogsUI();
-            
-            document.querySelector('.nav-item[data-target="tab-calculator"]').click();
-        }
-    );
+    openConfirmModal("تعديل مكونات الوجبة 🔄", `سيتم نقل عناصر وجبة "${meal.name}" للحاسبة لتعديل الأطعمة والأوزان، وسُتحذف من السجل لحفظها مجدداً. هل ترغب بالاستمرار؟`, false, function() {
+        currentCalculatorItems = [...meal.items];
+        dailyLogs.splice(mealIndex, 1);
+        saveLogsToStorage();
+        updateCalculatorUI();
+        renderLogsUI();
+        document.querySelector('.nav-item[data-target="tab-calculator"]').click();
+    });
 }

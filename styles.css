@@ -3,8 +3,8 @@
    إعدادات المتغيرات والألوان الأساسية
    ========================================= */
 :root {
-    --primary-color: #10b981; /* أخضر زمردي */
-    --primary-dark: #059669;
+    --primary-color: #19AB9F; /* أخضر زمردي */
+    --primary-dark: rgb(3, 112, 78);
     --bg-color: #f3f4f6;
     --card-bg: #ffffff;
     --text-main: #1f2937;

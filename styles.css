@@ -19,25 +19,32 @@
 }
 
 body {
+    margin: 0; /* تأكد من إزالة الهوامش الافتراضية */
     background-color: #e5e7eb;
     color: var(--text-main);
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
+    min-height: 100dvh; /* تم التعديل إلى dvh */
 }
 
 /* حاوية التطبيق (تحاكي شاشة الجوال) */
 .app-container {
     width: 100%;
-    height: 100vh;
-    max-height: 100vh;
+    height: 100dvh; /* تم التعديل إلى dvh */
+    max-height: 100dvh; /* تم التعديل إلى dvh */
     background-color: var(--bg-color);
     position: relative;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: hidden; /* لمنع أي سكرول داخلي زائد */
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* مثال لكيفية تقسيم العناصر داخل app-container */
+.content-area {
+    flex: 1; /* يأخذ باقي المساحة المتاحة */
+    overflow-y: auto; /* يسمح بالسكرول للمحتوى فقط وليس الشاشة كاملة */
 }
 
 /* الشريط العلوي */

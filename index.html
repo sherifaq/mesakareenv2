@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>مسكرين 🍃</title>
+    <!-- خط تجوال لدعم الهوية العربية -->
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <!-- ربط ملف التنسيقات -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- الشريط العلوي (Header) -->
+        <header class="app-header">
+            <h1 class="logo-title">مسكرين 🍃</h1>
+        </header>
+
+        <!-- منطقة المحتوى الرئيسية -->
+        <main class="app-content">
+            
+            <!-- 1. شاشة الرئيسية -->
+            <section id="tab-home" class="tab-content active">
+                <div class="card greeting-card">
+                    <h2>مرحباً بك في مسكرين!</h2>
+                    <p>تطبيقك الذكي لتتبع الكربوهيدرات ومؤشر السكر.</p>
+                </div>
+                <div class="dashboard-stats">
+                    <div class="stat-box">
+                        <span class="stat-value">0</span>
+                        <span class="stat-label">كربوهيدرات (جم)</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. شاشة الأطعمة والبحث -->
+            <section id="tab-foods" class="tab-content">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="ابحث عن طعام...">
+                </div>
+                <div class="categories-chips" id="categoriesContainer">
+                    <!-- سيتم إضافة التصنيفات هنا بواسطة JS -->
+                </div>
+                <div id="foodList" class="food-list">
+                    <!-- سيتم إضافة قائمة الأطعمة هنا بواسطة JS -->
+                </div>
+            </section>
+
+            <!-- ... (باقي الكود قبل شاشة الحاسبة) ... -->
+
+            <!-- 3. شاشة الحاسبة -->
+            <section id="tab-calculator" class="tab-content">
+                <div class="card">
+                    <h2 class="section-title">حاسبة الوجبة الحالية</h2>
+                    <div id="calculatorItems" class="calculator-items">
+                        <p class="empty-state">لم تقم بإضافة أطعمة للحاسبة بعد.</p>
+                    </div>
+                    <div class="calculator-summary">
+                        <div class="summary-row">
+                            <span>إجمالي الكربوهيدرات:</span>
+                            <span class="total-value" id="totalCarbs">0 جم</span>
+                        </div>
+                        <div class="summary-row">
+                            <span>الحمل الجلايسيمي التقريبي (GL):</span>
+                            <span class="total-value" id="totalGL">0</span>
+                        </div>
+                    </div>
+                    <!-- الزر الجديد: حفظ الوجبة -->
+                    <button id="saveMealBtn" class="save-meal-btn" onclick="promptSaveMeal()" style="display: none;">
+                        💾 حفظ الوجبة في السجل
+                    </button>
+                </div>
+            </section>
+
+            <!-- 4. شاشة السجل -->
+            <section id="tab-logs" class="tab-content">
+                <div class="card">
+                    <h2 class="section-title">السجل اليومي</h2>
+                    <!-- حاوية الوجبات المحفوظة -->
+                    <div id="logsContainer" class="logs-container">
+                        <p id="emptyLogsMessage" class="empty-state">تاريخ وجباتك سيظهر هنا.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ... (باقي الكود بعد شاشة السجل) ... -->
+
+        </main>
+
+        <!-- شريط التنقل السفلي (Bottom Navigation) -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-target="tab-home">
+                <span class="nav-icon">🏠</span>
+                <span class="nav-label">الرئيسية</span>
+            </button>
+            <button class="nav-item" data-target="tab-foods">
+                <span class="nav-icon">🍎</span>
+                <span class="nav-label">الأطعمة</span>
+            </button>
+            <button class="nav-item" data-target="tab-calculator">
+                <span class="nav-icon">🧮</span>
+                <span class="nav-label">الحاسبة</span>
+            </button>
+            <button class="nav-item" data-target="tab-logs">
+                <span class="nav-icon">📅</span>
+                <span class="nav-label">السجل</span>
+            </button>
+            <!-- <button class="nav-item" data-target="tab-settings">
+                <span class="nav-icon">⚙️</span>
+                <span class="nav-label">الإعدادات</span>
+            </button> -->
+        </nav>
+    </div>
+    <!-- ... شريط التنقل السفلي (Bottom Navigation) ... -->
+        
+        <!-- النافذة المنبثقة المخصصة لإدخال الوزن (Modal) -->
+        <div id="weightModal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 id="modalFoodName" class="modal-title">اسم الطعام</h3>
+                <p class="modal-desc">أدخل الكمية التي ستتناولها بالجرام لحساب الكربوهيدرات بدقة.</p>
+                
+                <div class="modal-input-group">
+                    <input type="number" id="modalWeightInput" placeholder="100" min="1" step="1">
+                    <span class="modal-unit">جم</span>
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="closeWeightModal()">إلغاء</button>
+                    <button class="btn-confirm" onclick="confirmWeightAndAdd()">إضافة للحاسبة</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 1. نافذة إدخال النصوص (لتسمية الوجبة وتعديل عنوانها) -->
+        <div id="textInputModal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 id="textModalTitle" class="modal-title">تسمية الوجبة</h3>
+                <p id="textModalDesc" class="modal-desc">أدخل اسماً للوجبة لتسهيل معرفتها في السجل.</p>
+                
+                <div class="modal-input-group">
+                    <input type="text" id="textModalInput" placeholder="مثال: الفطور، الغداء..." style="text-align: right; padding: 12px 16px;">
+                </div>
+                
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="closeTextInputModal()">إلغاء</button>
+                    <button class="btn-confirm" id="textModalConfirmBtn">حفظ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. نافذة التأكيد (للحذف أو الاسترجاع للحاسبة) -->
+        <div id="confirmModal" class="modal-overlay">
+            <div class="modal-content">
+                <h3 id="confirmModalTitle" class="modal-title">تأكيد الإجراء</h3>
+                <p id="confirmModalDesc" class="modal-desc">هل أنت متأكد من تنفيذ هذا الإجراء؟</p>
+                
+                <div class="modal-actions">
+                    <button class="btn-cancel" onclick="closeConfirmModal()">إلغاء</button>
+                    <button class="btn-confirm" id="confirmModalActionBtn">تأكيد</button>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- نهاية app-container -->
+
+    <!-- ربط ملفات الجافاسكريبت ... -->
+
+    <!-- ربط ملفات الجافاسكريبت (ملف البيانات أولاً ثم ملف العمليات) -->
+    <script src="data.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

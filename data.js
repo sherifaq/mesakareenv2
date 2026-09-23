@@ -17195,5 +17195,53 @@ const foodDatabase = [
         "fat": 0.3,
         "gi": 42,
         "servingSizeDesc": "100g"
-    }
+    },
+    {
+        "id": 10000,
+        "name": "عيش برجر فوشيه",
+        "aliases": "يامن ,برجر,عيش,خبز",
+        "category": "يامن",
+        "subcategory": "",
+        "carbsPer100g": 48.5,
+        "protein": 11,
+        "fat": 8.6,
+        "gi": 61,
+        "servingSizeDesc": "100g"
+    },
+    {
+        "id": 10001,
+        "name": "برجر لحم أمريكانا",
+        "aliases": "يامن ,برجر,لحم ",
+        "category": "يامن",
+        "subcategory": "",
+        "carbsPer100g": 5,
+        "protein": 12,
+        "fat": 14,
+        "gi": 3,
+        "servingSizeDesc": "100g"
+    },
+    {
+        "id": 10002,
+        "name": "شريحة جبن شيدر للبرجر",
+        "aliases": "يامن ,برجر,جبن ",
+        "category": "يامن",
+        "subcategory": "",
+        "carbsPer100g": 10,
+        "protein": 15,
+        "fat": 25.3,
+        "gi": 5,
+        "servingSizeDesc": "100g"
+    },
+    {
+        "id": 10003,
+        "name": "كاتشاب وصوصات",
+        "aliases": "يامن ,برجر ",
+        "category": "يامن",
+        "subcategory": "",
+        "carbsPer100g": 100,
+        "protein": 0,
+        "fat": 0,
+        "gi": 55,
+        "servingSizeDesc": "100g"
+    },
 ];
